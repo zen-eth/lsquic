@@ -44,6 +44,11 @@ pub fn build(b: *std.Build) void {
     lib.addIncludePath(lshpack_dep.path(""));
     lib.addIncludePath(lsqpack_dep.path(""));
     lib.addIncludePath(upstream.path("include"));
+    lib.installHeadersDirectory(
+        upstream.path("include"),
+        "",
+        .{ .include_extensions = &.{".h"} },
+    );
     lib.addCSourceFiles(.{ .root = upstream.path("src/liblsquic"), .files = lsquic_files });
     b.installArtifact(lib);
 }
