@@ -29,6 +29,7 @@ pub fn build(b: *std.Build) void {
     const lib = b.addLibrary(.{
         .name = "lsquic",
         .linkage = .static,
+
         .root_module = b.createModule(
             .{
                 .target = target,
@@ -37,6 +38,7 @@ pub fn build(b: *std.Build) void {
             },
         ),
     });
+
     lib.linkLibrary(ssl);
     lib.linkLibrary(crypto);
     lib.addIncludePath(lshpack_dep.path("deps/xxhash"));
@@ -51,7 +53,16 @@ pub fn build(b: *std.Build) void {
     );
     lib.installHeader(lsqpack_dep.path("lsqpack.h"), "lsqpack/lsqpack.h");
     lib.installHeader(lshpack_dep.path("lshpack.h"), "lshpack/lshpack.h");
+    lib.installHeader(lsqpack_dep.path("deps/xxhash/xxhash.h"), "lsqpack/xxhash.h");
+    lib.installHeader(lshpack_dep.path("deps/xxhash/xxhash.h"), "lshpack/xxhash.h");
+    lib.root_module.addCMacro("XXH_HEADER_NAME", "\"xxhash.h\"");
+
     lib.addCSourceFiles(.{ .root = upstream.path("src/liblsquic"), .files = lsquic_files });
+    lib.addCSourceFile(.{ .file = lsqpack_dep.path("lsqpack.c") });
+    lib.addCSourceFile(.{ .file = lshpack_dep.path("lshpack.c") });
+    lib.addCSourceFile(.{ .file = lshpack_dep.path("deps/xxhash/xxhash.c") });
+    lib.addCSourceFile(.{ .file = lsqpack_dep.path("deps/xxhash/xxhash.c") });
+
     b.installArtifact(lib);
 }
 
