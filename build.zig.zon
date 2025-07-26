@@ -7,8 +7,8 @@
 
     .dependencies = .{
         .lsquic = .{
-            .url = "git+https://github.com/litespeedtech/lsquic#aecfcefa422505929ba29071442785a884571126",
-            .hash = "N-V-__8AAALQZACNAeMe8qEYieQId_sO9YzLbIyJyVwryHz_",
+            .url = "git+https://github.com/zen-eth/lsquic-c#0ee67d8d0cb4d7594bbd566a8c2b1bda7109dbef",
+            .hash = "N-V-__8AAPzQZAAJuNrRL8_ABXQRextCJOXWNggpIJYkxnMg"
         },
         .boringssl = .{
             .url = "git+https://github.com/Syndica/boringssl-zig#bc4746ff08411af586a64f2e2feb57cda64ecbe1",
