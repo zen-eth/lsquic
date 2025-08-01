@@ -37,7 +37,7 @@ pub fn build(b: *std.Build) void {
         "-DLSQUIC_CONN_STATS=1",
         "-DLSQUIC_DEVEL=1",
         "-DLSQUIC_WEBTRANSPORT_SERVER_SUPPORT=1",
-        // "-fno-sanitize=null",
+        "-fno-sanitize=undefined",
     }) catch @panic("OOM");
 
     if (optimize == .Debug or optimize == .ReleaseSafe) {
