@@ -37,7 +37,7 @@ pub fn build(b: *std.Build) void {
         "-DLSQUIC_CONN_STATS=1",
         "-DLSQUIC_DEVEL=1",
         "-DLSQUIC_WEBTRANSPORT_SERVER_SUPPORT=1",
-        "-fno-sanitize=undefined",
+        "-fno-sanitize=null",
     }) catch @panic("OOM");
 
     if (optimize == .Debug) {
@@ -47,21 +47,22 @@ pub fn build(b: *std.Build) void {
     }
 
     if (target.result.os.tag == .windows) {
-        lib.addIncludePath(upstream.path("wincompat"));
-        c_flags.appendSlice(&.{
-            "/W4",                       "/WX",
-            "-DWIN32_LEAN_AND_MEAN",     "-DNOMINMAX",
-            "-D_CRT_SECURE_NO_WARNINGS", "/wd4100",
-            "/wd4115",                   "/wd4116",
-            "/wd4146",                   "/wd4132",
-            "/wd4200",                   "/wd4204",
-            "/wd4244",                   "/wd4245",
-            "/wd4267",                   "/wd4214",
-            "/wd4295",                   "/wd4324",
-            "/wd4334",                   "/wd4456",
-            "/wd4459",                   "/wd4706",
-            "/wd4090",                   "/wd4305",
-        }) catch @panic("OOM");
+        // When we have a windows test environment, we can enable these flags.
+        // lib.addIncludePath(upstream.path("wincompat"));
+        // c_flags.appendSlice(&.{
+        //     "/W4",                       "/WX",
+        //     "-DWIN32_LEAN_AND_MEAN",     "-DNOMINMAX",
+        //     "-D_CRT_SECURE_NO_WARNINGS", "/wd4100",
+        //     "/wd4115",                   "/wd4116",
+        //     "/wd4146",                   "/wd4132",
+        //     "/wd4200",                   "/wd4204",
+        //     "/wd4244",                   "/wd4245",
+        //     "/wd4267",                   "/wd4214",
+        //     "/wd4295",                   "/wd4324",
+        //     "/wd4334",                   "/wd4456",
+        //     "/wd4459",                   "/wd4706",
+        //     "/wd4090",                   "/wd4305",
+        // }) catch @panic("OOM");
     } else {
         c_flags.appendSlice(&.{
             // Lifted from lsquic's CMakeLists.txt
@@ -79,7 +80,8 @@ pub fn build(b: *std.Build) void {
     lib.linkLibrary(crypto);
 
     if (target.result.os.tag == .windows) {
-        lib.linkSystemLibrary("ws2_32");
+        // Uncomment these when we have a windows test environment.
+        // lib.linkSystemLibrary("ws2_32");
     } else {
         lib.linkSystemLibrary("m");
         lib.linkSystemLibrary("pthread");
