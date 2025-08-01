@@ -64,6 +64,8 @@ pub fn build(b: *std.Build) void {
         }) catch @panic("OOM");
     } else {
         c_flags.appendSlice(&.{
+            // Lifted from lsquic's CMakeLists.txt
+            // Source: https://github.com/litespeedtech/lsquic/blob/70486141724f85e97b08f510673e29f399bbae8f/CMakeLists.txt#L52-L53
             "-Wall",
             "-Wextra",
             "-Wno-unused-parameter",
