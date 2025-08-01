@@ -37,10 +37,10 @@ pub fn build(b: *std.Build) void {
         "-DLSQUIC_CONN_STATS=1",
         "-DLSQUIC_DEVEL=1",
         "-DLSQUIC_WEBTRANSPORT_SERVER_SUPPORT=1",
-        "-fno-sanitize=null",
+        // "-fno-sanitize=null",
     }) catch @panic("OOM");
 
-    if (optimize == .Debug) {
+    if (optimize == .Debug or optimize == .ReleaseSafe) {
         c_flags.appendSlice(&.{ "-O0", "-g3" }) catch @panic("OOM");
     } else {
         c_flags.appendSlice(&.{ "-O3", "-g0" }) catch @panic("OOM");
