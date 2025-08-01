@@ -40,7 +40,7 @@ pub fn build(b: *std.Build) void {
         "-fno-sanitize=undefined",
     }) catch @panic("OOM");
 
-    if (optimize == .Debug or optimize == .ReleaseSafe) {
+    if (optimize == .Debug) {
         c_flags.appendSlice(&.{ "-O0", "-g3" }) catch @panic("OOM");
     } else {
         c_flags.appendSlice(&.{ "-O3", "-g0" }) catch @panic("OOM");
