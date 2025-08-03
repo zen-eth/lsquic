@@ -20,6 +20,10 @@ pub fn build(b: *std.Build) void {
         .target = target,
         .optimize = optimize,
     });
+    const zlib = b.dependency("zlib", .{
+        .target = target,
+        .optimize = optimize,
+    });
 
     const ssl = boringssl.artifact("ssl");
     const crypto = boringssl.artifact("crypto");
@@ -41,6 +45,8 @@ pub fn build(b: *std.Build) void {
 
     lib.linkLibrary(ssl);
     lib.linkLibrary(crypto);
+    lib.linkLibrary(zlib.artifact("z"));
+    lib.addIncludePath(zlib.path("src"));
     lib.addIncludePath(lshpack_dep.path("deps/xxhash"));
     lib.addIncludePath(lsqpack_dep.path("deps/xxhash"));
     lib.addIncludePath(lshpack_dep.path(""));
@@ -152,5 +158,4 @@ const lsquic_files: []const []const u8 = &.{
     "lsquic_varint.c",
     "lsquic_version.c",
     "lsquic_xxhash.c",
-    "lsquic_global.c",
 };
