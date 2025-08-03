@@ -1,0 +1,61 @@
+name: CI
+on:
+    push:
+        branches: [main]
+    pull_request:
+        branches: [main]
+
+env:
+    ZIG_VERSION: 0.14.1
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        include:
+          # macOS builds
+          - os: macos-latest
+            target: aarch64-macos-none
+          - os: macos-latest
+            target: x86_64-macos-none
+          # Linux builds
+          - os: ubuntu-latest
+            target: aarch64-linux-gnu
+          - os: ubuntu-latest
+            target: x86_64-linux-gnu
+      fail-fast: false
+    runs-on: ${{matrix.os}}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Zig
+        id: setup-zig
+        uses: mlugg/setup-zig@v2
+        with:
+          version: ${{ env.ZIG_VERSION }}
+
+      - name: Cache Zig installation
+        uses: actions/cache@v3
+        with:
+          path: ${{ steps.setup-zig.outputs.install-path }}
+          key: ${{ runner.os }}-zig-${{ env.ZIG_VERSION }}
+
+      - name: Cache Zig build artifacts
+        uses: actions/cache@v3
+        with:
+          path: |
+            zig-cache
+            ~/.cache/zig
+          key: ${{ runner.os }}-${{ matrix.target }}-zig-build-${{ hashFiles('build.zig', 'build.zig.zon') }}
+          restore-keys: |
+            ${{ runner.os }}-${{ matrix.target }}-zig-build-
+            
+      - name: Formatting
+        run: zig fmt --check .
+
+      # TODO: uncomment when tests are implemented
+      # - name: Unit testing
+      #   run: zig build test -Dtarget=${{matrix.target}} --summary all
+
+      - name: Building
+        run: zig build -Dtarget=${{matrix.target}} -Doptimize=ReleaseFast --summary all
