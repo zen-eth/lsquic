@@ -24,10 +24,17 @@ pub fn build(b: *std.Build) void {
     const ssl = boringssl.artifact("ssl");
     const crypto = boringssl.artifact("crypto");
 
-    const lib = b.addStaticLibrary(.{
+    const lib = b.addLibrary(.{
         .name = "lsquic",
-        .target = target,
-        .optimize = optimize,
+        .linkage = .static,
+
+        .root_module = b.createModule(
+            .{
+                .target = target,
+                .optimize = optimize,
+                .link_libc = true,
+            },
+        ),
     });
 
     var c_flags = std.ArrayList([]const u8).init(b.allocator);
@@ -37,6 +44,9 @@ pub fn build(b: *std.Build) void {
         "-DLSQUIC_CONN_STATS=1",
         "-DLSQUIC_DEVEL=1",
         "-DLSQUIC_WEBTRANSPORT_SERVER_SUPPORT=1",
+        // When using the Zig ReleaseSafe mode, it seems force to check for undefined behavior.
+        // This is not the case with ReleaseSmall or ReleaseFast. So we must add this flag
+        // to avoid the build failing with ReleaseSafe.
         "-fno-sanitize=undefined",
     }) catch @panic("OOM");
 
