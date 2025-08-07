@@ -23,8 +23,6 @@ pub fn build(b: *std.Build) void {
 
     const ssl = boringssl.artifact("ssl");
     const crypto = boringssl.artifact("crypto");
-    // const lshpack_c = lshpack_dep.path("lshpack.c");
-    // const lsqpack_c = lsqpack_dep.path("lsqpack.c");
 
     const lib = b.addLibrary(.{
         .name = "lsquic",
@@ -39,13 +37,71 @@ pub fn build(b: *std.Build) void {
         ),
     });
 
+    var c_flags = std.ArrayList([]const u8).init(b.allocator);
+
+    c_flags.appendSlice(&.{
+        "-DLSQUIC_DEBUG_NEXT_ADV_TICK=1",
+        "-DLSQUIC_CONN_STATS=1",
+        "-DLSQUIC_DEVEL=1",
+        "-DLSQUIC_WEBTRANSPORT_SERVER_SUPPORT=1",
+        // When using the Zig ReleaseSafe mode, it seems force to check for undefined behavior.
+        // This is not the case with ReleaseSmall or ReleaseFast. So we must add this flag
+        // to avoid the build failing with ReleaseSafe.
+        "-fno-sanitize=undefined",
+    }) catch @panic("OOM");
+
+    if (optimize == .Debug) {
+        c_flags.appendSlice(&.{ "-O0", "-g3" }) catch @panic("OOM");
+    } else {
+        c_flags.appendSlice(&.{ "-O3", "-g0" }) catch @panic("OOM");
+    }
+
+    if (target.result.os.tag == .windows) {
+        // When we have a windows test environment, we can enable these flags.
+        // lib.addIncludePath(upstream.path("wincompat"));
+        // c_flags.appendSlice(&.{
+        //     "/W4",                       "/WX",
+        //     "-DWIN32_LEAN_AND_MEAN",     "-DNOMINMAX",
+        //     "-D_CRT_SECURE_NO_WARNINGS", "/wd4100",
+        //     "/wd4115",                   "/wd4116",
+        //     "/wd4146",                   "/wd4132",
+        //     "/wd4200",                   "/wd4204",
+        //     "/wd4244",                   "/wd4245",
+        //     "/wd4267",                   "/wd4214",
+        //     "/wd4295",                   "/wd4324",
+        //     "/wd4334",                   "/wd4456",
+        //     "/wd4459",                   "/wd4706",
+        //     "/wd4090",                   "/wd4305",
+        // }) catch @panic("OOM");
+    } else {
+        c_flags.appendSlice(&.{
+            // Lifted from lsquic's CMakeLists.txt
+            // Source: https://github.com/litespeedtech/lsquic/blob/70486141724f85e97b08f510673e29f399bbae8f/CMakeLists.txt#L52-L53
+            "-Wall",
+            "-Wextra",
+            "-Wno-unused-parameter",
+            "-fno-omit-frame-pointer",
+        }) catch @panic("OOM");
+    }
+
+    // --- Linking and Paths ---
+    lib.linkLibC();
     lib.linkLibrary(ssl);
     lib.linkLibrary(crypto);
-    lib.addIncludePath(lshpack_dep.path("deps/xxhash"));
-    lib.addIncludePath(lsqpack_dep.path("deps/xxhash"));
+
+    if (target.result.os.tag == .windows) {
+        // Uncomment these when we have a windows test environment.
+        // lib.linkSystemLibrary("ws2_32");
+    } else {
+        lib.linkSystemLibrary("m");
+        lib.linkSystemLibrary("pthread");
+    }
+
+    lib.addIncludePath(upstream.path("include"));
     lib.addIncludePath(lshpack_dep.path(""));
     lib.addIncludePath(lsqpack_dep.path(""));
-    lib.addIncludePath(upstream.path("include"));
+    lib.addIncludePath(lshpack_dep.path("deps/xxhash"));
+
     lib.installHeadersDirectory(
         upstream.path("include"),
         "",
@@ -53,22 +109,22 @@ pub fn build(b: *std.Build) void {
     );
     lib.installHeader(lsqpack_dep.path("lsqpack.h"), "lsqpack/lsqpack.h");
     lib.installHeader(lshpack_dep.path("lshpack.h"), "lshpack/lshpack.h");
-    lib.installHeader(lsqpack_dep.path("deps/xxhash/xxhash.h"), "lsqpack/xxhash.h");
-    lib.installHeader(lshpack_dep.path("deps/xxhash/xxhash.h"), "lshpack/xxhash.h");
+    lib.installHeader(lshpack_dep.path("deps/xxhash/xxhash.h"), "xxhash.h");
     lib.root_module.addCMacro("XXH_HEADER_NAME", "\"xxhash.h\"");
 
-    lib.addCSourceFiles(.{ .root = upstream.path("src/liblsquic"), .files = lsquic_files });
-    lib.addCSourceFile(.{ .file = lsqpack_dep.path("lsqpack.c") });
-    lib.addCSourceFile(.{ .file = lshpack_dep.path("lshpack.c") });
-    lib.addCSourceFile(.{ .file = lshpack_dep.path("deps/xxhash/xxhash.c") });
-    lib.addCSourceFile(.{ .file = lsqpack_dep.path("deps/xxhash/xxhash.c") });
+    lib.addCSourceFiles(.{
+        .root = upstream.path("src/liblsquic"),
+        .files = lsquic_files,
+        .flags = c_flags.items,
+    });
+    lib.addCSourceFile(.{ .file = lsqpack_dep.path("lsqpack.c"), .flags = c_flags.items });
+    lib.addCSourceFile(.{ .file = lshpack_dep.path("lshpack.c"), .flags = c_flags.items });
+    lib.addCSourceFile(.{ .file = lshpack_dep.path("deps/xxhash/xxhash.c"), .flags = c_flags.items });
 
     b.installArtifact(lib);
 }
 
 const lsquic_files: []const []const u8 = &.{
-    // "common_cert_set_2.c",
-    // "common_cert_set_3.c",
     "ls-sfparser.c",
     "lsquic_adaptive_cc.c",
     "lsquic_alarmset.c",
@@ -152,5 +208,4 @@ const lsquic_files: []const []const u8 = &.{
     "lsquic_varint.c",
     "lsquic_version.c",
     "lsquic_xxhash.c",
-    "lsquic_global.c",
 };
