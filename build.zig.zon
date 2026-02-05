@@ -3,7 +3,7 @@
 
     .version = "0.0.0",
     .fingerprint = 0x91bb79d376e0ee8c,
-    .minimum_zig_version = "0.14.0",
+    .minimum_zig_version = "0.15.0",
 
     .dependencies = .{
         .lsquic = .{
@@ -11,12 +11,12 @@
             .hash = "N-V-__8AAALQZACNAeMe8qEYieQId_sO9YzLbIyJyVwryHz_",
         },
         .boringssl = .{
-            .url = "git+https://github.com/Syndica/boringssl-zig#bc4746ff08411af586a64f2e2feb57cda64ecbe1",
-            .hash = "boringssl-0.1.0-VtJeWVDKrQgYfDw6RrEQvFmT8iuH0wXmdibYsRWsAdNA",
+            .url = "git+https://github.com/Syndica/boringssl-zig#c53df00d06b02b755ad88bbf4d1202ed9687b096",
+            .hash = "boringssl-0.1.0-VtJeWehMAAA4RNnwRnzEvKcS9rjsR1QVRw1uJrwXxmVK",
         },
         .zlib = .{
-            .url = "git+https://github.com/allyourcodebase/zlib#6c72830882690c1eb2567a537525c3f432c1da50",
-            .hash = "zlib-1.3.1-ZZQ7lVgMAACwO4nUUd8GLhsuQ5JQq_VAhlEiENJTUv6h",
+            .url = "git+https://github.com/allyourcodebase/zlib#c5115f4b69ef660f72a835c6638f80508ef284c7",
+            .hash = "zlib-1.3.1-1-ZZQ7ldENAAA7qJjUXP6E6xnRuV-jDL9dyoJFc_eb3zQ6",
         },
         .lshpack = .{
             .url = "git+https://github.com/litespeedtech/ls-hpack#8905c024b6d052f083a3d11d0a169b3c2735c8a1",
