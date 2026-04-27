@@ -20,9 +20,14 @@ pub fn build(b: *std.Build) void {
         .target = target,
         .optimize = optimize,
     });
+    const zlib_dep = b.dependency("zlib", .{
+        .target = target,
+        .optimize = optimize,
+    });
 
     const ssl = boringssl.artifact("ssl");
     const crypto = boringssl.artifact("crypto");
+    const zlib = zlib_dep.artifact("z");
 
     const lib = b.addLibrary(.{
         .name = "lsquic",
@@ -88,6 +93,7 @@ pub fn build(b: *std.Build) void {
     lib.linkLibC();
     lib.linkLibrary(ssl);
     lib.linkLibrary(crypto);
+    lib.linkLibrary(zlib);
 
     if (target.result.os.tag == .windows) {
         // Uncomment these when we have a windows test environment.
