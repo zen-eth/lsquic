@@ -37,9 +37,9 @@ pub fn build(b: *std.Build) void {
         ),
     });
 
-    var c_flags = std.ArrayList([]const u8).init(b.allocator);
+    var c_flags: std.ArrayList([]const u8) = .empty;
 
-    c_flags.appendSlice(&.{
+    c_flags.appendSlice(b.allocator, &.{
         "-DLSQUIC_DEBUG_NEXT_ADV_TICK=1",
         "-DLSQUIC_CONN_STATS=1",
         "-DLSQUIC_DEVEL=1",
@@ -51,9 +51,9 @@ pub fn build(b: *std.Build) void {
     }) catch @panic("OOM");
 
     if (optimize == .Debug) {
-        c_flags.appendSlice(&.{ "-O0", "-g3" }) catch @panic("OOM");
+        c_flags.appendSlice(b.allocator, &.{ "-O0", "-g3" }) catch @panic("OOM");
     } else {
-        c_flags.appendSlice(&.{ "-O3", "-g0" }) catch @panic("OOM");
+        c_flags.appendSlice(b.allocator, &.{ "-O3", "-g0" }) catch @panic("OOM");
     }
 
     if (target.result.os.tag == .windows) {
@@ -74,7 +74,7 @@ pub fn build(b: *std.Build) void {
         //     "/wd4090",                   "/wd4305",
         // }) catch @panic("OOM");
     } else {
-        c_flags.appendSlice(&.{
+        c_flags.appendSlice(b.allocator, &.{
             // Lifted from lsquic's CMakeLists.txt
             // Source: https://github.com/litespeedtech/lsquic/blob/70486141724f85e97b08f510673e29f399bbae8f/CMakeLists.txt#L52-L53
             "-Wall",
